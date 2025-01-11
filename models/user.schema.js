@@ -13,7 +13,8 @@ const userSchema=new Schema({
         type:String,
     },
     history:{
-        type:String,
+        type: Schema.Types.ObjectId,
+        ref: "User",
     }
 
 })
