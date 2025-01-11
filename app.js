@@ -24,6 +24,14 @@ app.get('/register', (req, res) => {
     res.render("user/registerEmail");
 });
 
+app.post('/register',(req,res)=>{
+    res.send(`${otp}`)
+})
+
+app.get('/login',(req,res)=>{
+    res.render("user/userLogin.ejs");
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
@@ -38,3 +46,36 @@ async function connectToDatabase() {
 }
 
 connectToDatabase();
+
+
+
+import { Resend } from 'resend';
+
+const resend = new Resend('re_AuAM5t1g_FqBfWZKj92DFDF1C5GjkByLp');
+
+function generateOtp(length = 6) {
+    const digits = '0123456789';
+    let otp = '';
+    for (let i = 0; i < length; i++) {
+      otp += digits[Math.floor(Math.random() * 10)];
+    }
+    return otp;
+  }
+
+
+  const otp=generateOtp();
+
+(async function () {
+  const { data, error } = await resend.emails.send({
+    from: 'Acme <onboarding@resend.dev>',
+    to: ['ananya110011@gmail.com'],
+    subject: 'Hello World',
+    html: `<strong>${otp}</strong>`,
+  });
+
+  if (error) {
+    return console.error({ error });
+  }
+
+  console.log({ data });
+})();
