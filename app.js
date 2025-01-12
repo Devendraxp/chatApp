@@ -7,10 +7,15 @@ import mongoose from 'mongoose';
 import { Resend } from 'resend';
 import session from 'express-session';
 import flash from 'connect-flash';
+import {User} from "./models/user.schema.js";
+import passport from 'passport';
+import passportLocal from 'passport-local';
 
-const resend = new Resend('re_AuAM5t1g_FqBfWZKj92DFDF1C5GjkByLp');
+
 
 dotenv.config();  
+
+const resend = new Resend("re_5wscqcYX_GHuASbNXfZcUoCQAZSZZwzKc");
 const app = express();
 
 const sessionOptions=
@@ -20,6 +25,12 @@ const sessionOptions=
 
 app.use(session(sessionOptions));
 app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new passportLocal.Strategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
     res.locals.success = req.flash('success');
@@ -55,6 +66,7 @@ app.post('/register', async (req, res) => {
         // TODO: Add storage logic
         
         req.session.otp=otp;
+        req.session.email=email;
 
         await resend.emails.send({
             from: 'onboarding@resend.dev',
@@ -65,7 +77,7 @@ app.post('/register', async (req, res) => {
                 <div style="background-color: white; padding: 30px; border-radius: 10px; text-align: center;">
                 <h1 style="color: #2c3e50;">Welcome! 👋</h1>
                 <div style="font-size: 24px; margin: 20px 0;">
-                    Your OTP is: <strong style="color: #3498db; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">${otp}</strong>
+                    Your OTP is: <strong style=" margin-top: 40px; color: #3498db; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">${otp}</strong>
                 </div>
                 <p style="color: #7f8c8d; margin-top: 20px;">
                     🔒 Please use this OTP to complete your registration.
@@ -88,6 +100,9 @@ app.post('/register', async (req, res) => {
 });
 
 app.get('/register_otp', (req, res) => {
+    if(!req.session.otp || !req.session.email){
+        return res.redirect('/register');
+    }
     res.render("user/registerOtp", { messages: req.flash() });
     console.log(req.session);
 
@@ -110,12 +125,43 @@ app.post('/register_otp', (req, res) => {
 
 
 app.get('/register_u', (req, res) => {
-    res.render("user/registerUsername");
+    if(!req.session.otp){
+        return res.redirect('/register');
+    }
+    
+    res.render("user/registerUsername", {email : req.session.email});
 });
 
+app.post('/register_u', async (req, res, next) => {
+    try {
+    const username = req.body.username;
+    const password = req.body.password;
+    const email = req.session.email;
+
+        const newUser = new User({ username, email });
+        const registeredUser = await User.register(newUser, password);
+        console.log(registeredUser);
+        req.login(registeredUser, (err) => {
+          if (err) {
+            return next(err);
+          }
+          req.flash("success", "Welcome to Chat !");
+          res.redirect("/");
+        });
+      } catch (e) {
+        req.flash("error", e.message);
+        res.redirect("/register_u");
+      }
+
+});
 
 app.get('/login',(req,res)=>{
     res.render("user/userLogin.ejs");
+});
+
+app.post('/login',passport.authenticate('local',{failureFlash:true,failureRedirect:'/login'}),(req,res)=>{
+    req.flash("success","Welcome back !");
+    res.redirect("/");
 });
 
 app.listen(PORT, () => {
@@ -124,12 +170,12 @@ app.listen(PORT, () => {
 
 async function connectToDatabase() {
     try {
-        await mongoose.connect(process.env.MONGODB_URI);
+        await mongoose.connect("mongodb+srv://ananya:ananya11@cluster0.j8ym7.mongodb.net/");
         console.log("Connected to DB");
     } catch (err) {
         console.log("Error connecting to DB:", err);
     }
-}
+} 
 
 connectToDatabase();
 

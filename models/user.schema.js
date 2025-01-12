@@ -1,15 +1,9 @@
 import mongoose  from "mongoose";
 const Schema= mongoose.Schema;
+import passportLocalMongoose from "passport-local-mongoose";
 
 const userSchema=new Schema({
-    username:
-    {
-        type:String,
-    },
     email:{
-        type:String,
-    },
-    password:{
         type:String,
     },
     history:{
@@ -18,5 +12,6 @@ const userSchema=new Schema({
     }
 
 })
+userSchema.plugin(passportLocalMongoose);
 
-export const User = mongoose.model("Customer", userSchema);
+export const User = mongoose.model("User", userSchema);
