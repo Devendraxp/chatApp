@@ -1,0 +1,42 @@
+<!-- Success Message -->
+<% if (success && success.length > 0) { %>
+    <div id="success-alert" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 w-full max-w-lg" role="alert">
+        <span class="block sm:inline"><%= success[0] %></span>
+        <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+            <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <title>Close</title>
+                <path d="M14.7 5.3a1 1 0 00-1.4 0L10 8.6 6.7 5.3a1 1 0 00-1.4 1.4L8.6 10l-3.3 3.3a1 1 0 001.4 1.4L10 11.4l3.3 3.3a1 1 0 001.4-1.4L11.4 10l3.3-3.3a1 1 0 000-1.4z" />
+            </svg>
+        </span>
+    </div>
+<% } %>
+
+<!-- Error Message -->
+<% if (error && error.length > 0) { %>
+    <div id="error-alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 w-full max-w-lg" role="alert">
+        <span class="block sm:inline"><%= error[0] %></span>
+        <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+            <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <title>Close</title>
+                <path d="M14.7 5.3a1 1 0 00-1.4 0L10 8.6 6.7 5.3a1 1 0 00-1.4 1.4L8.6 10l-3.3 3.3a1 1 0 001.4 1.4L10 11.4l3.3 3.3a1 1 0 001.4-1.4L11.4 10l3.3-3.3a1 1 0 000-1.4z" />
+            </svg>
+        </span>
+    </div>
+<% } %>
+
+<script>
+  // Automatically dismiss alerts after 3 seconds
+  setTimeout(() => {
+    const successAlert = document.getElementById('success-alert');
+    if (successAlert) {
+      successAlert.style.display = 'none';
+    }
+  }, 3000);
+
+  setTimeout(() => {
+    const errorAlert = document.getElementById('error-alert');
+    if (errorAlert) {
+      errorAlert.style.display = 'none';
+    }
+  }, 3000);
+</script>
