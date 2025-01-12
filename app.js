@@ -5,11 +5,29 @@ import ejs from 'ejs';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Resend } from 'resend';
+import session from 'express-session';
+import flash from 'connect-flash';
 
 const resend = new Resend('re_AuAM5t1g_FqBfWZKj92DFDF1C5GjkByLp');
 
 dotenv.config();  
 const app = express();
+
+const sessionOptions=
+{secret:"mysupersecret",
+    resave:false,
+    saveUninitialized:true}
+
+app.use(session(sessionOptions));
+app.use(flash());
+
+app.use((req, res, next) => {
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
+    next();
+});
+
+
 app.set('view engine', 'ejs');
 const PORT = 3000;
 
@@ -36,6 +54,8 @@ app.post('/register', async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000);
         // TODO: Add storage logic
         
+        req.session.otp=otp;
+
         await resend.emails.send({
             from: 'onboarding@resend.dev',
             to: email,
@@ -57,6 +77,7 @@ app.post('/register', async (req, res) => {
                 </div>
             </div>
             `
+
         });
 
         res.redirect('/register_otp');
@@ -67,8 +88,27 @@ app.post('/register', async (req, res) => {
 });
 
 app.get('/register_otp', (req, res) => {
-    res.render("user/registerOtp");
+    res.render("user/registerOtp", { messages: req.flash() });
+    console.log(req.session);
+
 });
+
+
+
+app.post('/register_otp', (req, res) => {
+    const userOtp = req.body.otp; 
+    const sessionOtp = req.session.otp; 
+
+    if (parseInt(userOtp) === sessionOtp) {
+        req.flash('success', 'OTP verified successfully!');
+        res.redirect("/register_u");
+    } else {
+        req.flash('error', 'Invalid OTP');
+        res.redirect("/register_otp");
+    }
+});
+
+
 app.get('/register_u', (req, res) => {
     res.render("user/registerUsername");
 });
